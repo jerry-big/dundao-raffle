@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#07090c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<title>断刀 · 锻刀大会</title>
+<style>
+  :root{
+    --bg:#07090c;
+    --panel:#10141a;
+    --line:#2a3340;
+    --line2:#3d4a5c;
+    --text:#dbe3ee;
+    --dim:#8b97a8;
+    --dim2:#5f6a78;
+    --ember:#ff6a2b;
+    --ember-d:#a83c12;
+    --gold:#f3c969;
+    --red:#ff4d4d;
+    --mono:"Courier New", Consolas, "Microsoft YaHei", monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{min-height:100%}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:
+      radial-gradient(600px 420px at 50% -5%, rgba(255,106,43,.16), transparent 62%),
+      var(--bg);
+    color:var(--text);font-family:var(--mono);line-height:1.7;
+    display:flex;justify-content:center;
+    overscroll-behavior:none;
+  }
+  .app{
+    width:100%;max-width:420px;min-height:100vh;display:flex;flex-direction:column;
+    position:relative;
+  }
+  .app::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:9;
+    background:repeating-linear-gradient(180deg,rgba(0,0,0,.20) 0 1px,transparent 1px 3px);
+    opacity:.5;
+  }
+  header{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:calc(12px + env(safe-area-inset-top)) 16px 12px;border-bottom:1px solid #171d25;font-size:11px;color:var(--dim);
+    letter-spacing:1px;position:relative;z-index:2;
+  }
+  header .t{color:var(--gold)}
+  header .s{color:var(--dim2)}
+  main{flex:1;display:flex;flex-direction:column;padding:14px 16px 18px;position:relative;z-index:2}
+  .foot{padding:0 16px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px;position:relative;z-index:2}
+
+  .btn{
+    width:100%;text-align:center;cursor:pointer;user-select:none;border:none;
+    background:var(--ember);color:#150a04;padding:14px 12px;font-family:var(--mono);
+    font-size:15px;font-weight:bold;letter-spacing:4px;touch-action:manipulation;
+    box-shadow:0 5px 0 var(--ember-d), 0 6px 0 2px #2a1408;
+    transition:transform .06s, box-shadow .06s;
+  }
+  .btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ember-d), 0 2px 0 2px #2a1408}
+  .btn.ghost{background:transparent;color:var(--dim);border:2px solid var(--line2);box-shadow:none;font-size:12px;letter-spacing:1px;font-weight:normal;padding:10px}
+  .btn.ghost:active{transform:none}
+  .btn:disabled{background:#333a44;color:#6b7482;box-shadow:0 5px 0 #1a1f26}
+
+  .stage{
+    height:280px;display:flex;align-items:center;justify-content:center;position:relative;
+    background:radial-gradient(circle at 50% 60%, rgba(255,106,43,.14), transparent 62%);
+    border:2px solid var(--line);box-shadow:4px 4px 0 rgba(0,0,0,.55);
+  }
+  .stage.shake{animation:shake .26s steps(2) 3}
+  @keyframes shake{
+    0%{transform:translate(0,0)}
+    25%{transform:translate(-5px,2px) rotate(-1deg)}
+    50%{transform:translate(4px,-3px) rotate(1deg)}
+    75%{transform:translate(-2px,-1px)}
+    100%{transform:translate(0,0)}
+  }
+  .spark{position:absolute;width:4px;height:4px;background:var(--gold);opacity:0;pointer-events:none;box-shadow:0 0 7px rgba(255,180,80,.9)}
+  .spark.go{animation:sparkFly .6s ease-out forwards}
+  @keyframes sparkFly{
+    0%{opacity:1;transform:translate(0,0) scale(1)}
+    100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.3)}
+  }
+  .float{
+    position:absolute;right:20%;top:36%;color:var(--gold);font-size:16px;font-weight:bold;
+    text-shadow:2px 2px 0 #000;pointer-events:none;animation:floatUp .8s ease-out forwards;
+  }
+  @keyframes floatUp{
+    0%{opacity:1;transform:translateY(0)}
+    100%{opacity:0;transform:translateY(-58px) scale(1.15)}
+  }
+
+  .title{font-size:22px;letter-spacing:6px;text-align:center;color:#fff;text-shadow:3px 3px 0 #000}
+  .sub{font-size:11px;color:var(--dim2);text-align:center;letter-spacing:2px;margin-top:4px}
+  .divider{height:2px;background:repeating-linear-gradient(90deg,var(--line) 0 4px,transparent 4px 8px);margin:12px 0}
+  .rule{display:flex;gap:8px;font-size:11.5px;color:var(--dim);line-height:1.8}
+  .rule i{color:var(--ember);font-style:normal}
+
+  .stat{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;color:var(--dim2);letter-spacing:1px;padding:0 2px}
+  .stat b{color:#fff;font-size:24px;margin:0 5px;font-variant-numeric:tabular-nums}
+  .stat .l{font-size:10px}
+
+  .tabs{display:grid;grid-template-columns:repeat(3,1fr);border:2px solid var(--line);margin:10px 0 8px}
+  .tab{padding:9px 0;text-align:center;font-size:12px;color:var(--dim);background:#0c1116;letter-spacing:1px}
+  .tab+.tab{border-left:1px solid var(--line)}
+  .tab.on{background:rgba(255,106,43,.15);color:var(--ember)}
+  .tab .done{color:#3ddc97}
+
+  .parts{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .part{
+    border:2px solid var(--line);background:#0c1116;padding:8px 2px;text-align:center;
+    font-size:11px;color:var(--dim);letter-spacing:.5px;
+  }
+  .part.on{border-color:var(--gold);color:var(--gold);background:rgba(243,201,105,.08);box-shadow:3px 3px 0 rgba(0,0,0,.6)}
+
+  .hint{font-size:10.5px;color:var(--dim2);line-height:1.8}
+  .note{border-left:3px solid var(--line2);padding:6px 0 6px 10px;font-size:11px;color:var(--dim);margin-top:8px}
+
+  .card{
+    border:2px solid var(--gold);padding:14px;position:relative;overflow:hidden;
+    background:repeating-linear-gradient(135deg,rgba(243,201,105,.035) 0 8px,transparent 8px 16px),#0e1218;
+    box-shadow:5px 5px 0 rgba(0,0,0,.6);
+  }
+  .card .top{display:flex;justify-content:space-between;font-size:10px;color:var(--dim2);letter-spacing:1px}
+  .quality{font-size:34px;letter-spacing:8px;margin:6px 0 0;text-shadow:4px 4px 0 #000}
+  .qdesc{font-size:11px;color:var(--dim);letter-spacing:1px}
+  .card .body{display:flex;gap:10px;margin-top:10px;align-items:center}
+  .thumb{flex:0 0 96px;height:128px;border:1px solid var(--line);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .meta{flex:1;font-size:11.5px;color:var(--dim);line-height:2}
+  .meta b{color:#fff;font-weight:normal}
+  .score{margin-top:10px;border-top:1px dashed var(--line2);padding-top:8px;display:flex;justify-content:space-between;align-items:flex-end}
+  .score .lab{font-size:9.5px;color:var(--dim2);letter-spacing:1px}
+  .score .val{font-size:30px;color:#fff;line-height:1.2;font-variant-numeric:tabular-nums}
+  .score .val small{font-size:10px;color:var(--dim)}
+  .formula{font-size:9.5px;color:var(--dim2);letter-spacing:0}
+  .no{text-align:right;font-size:11px;color:var(--gold);letter-spacing:1px}
+  .footerline{margin-top:8px;font-size:10px;color:var(--dim2);letter-spacing:1px}
+
+  @media (max-width:360px){
+    .stage{height:250px}
+    .quality{font-size:30px}
+    .score .val{font-size:26px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header><span class="t">断刀 · 锻刀大会</span><span class="s" id="hudStep">DEMO</span></header>
+  <main id="view"></main>
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+/* ================= 数据 ================= */
+var PARTS = {
+  blade: [
+    { id:'straight', name:'直刃' },
+    { id:'curved',   name:'弯刃' },
+    { id:'thick',    name:'厚背' },
+    { id:'thin',     name:'细身' }
+  ],
+  handle: [
+    { id:'wrap',   name:'缠绳柄' },
+    { id:'shark',  name:'鲨皮柄' },
+    { id:'bronze', name:'铜环柄' },
+    { id:'ebony',  name:'黑檀柄' }
+  ],
+  guard: [
+    { id:'disc',  name:'圆盘护手' },
+    { id:'cross', name:'十字护手' },
+    { id:'beast', name:'兽首护手' },
+    { id:'none',  name:'无护手' }
+  ]
+};
+var TAB_LABEL = { blade:'刀身', handle:'刀柄', guard:'护手' };
+var TAB_ORDER = ['blade','handle','guard'];
+
+/* 次数权重（千分比），24 锤 = 神品 = 10 万分 */
+var WEIGHTS = [
+  {n:12,w:60},{n:13,w:90},{n:14,w:120},{n:15,w:150},{n:16,w:150},
+  {n:17,w:130},{n:18,w:100},{n:19,w:80},{n:20,w:55},{n:21,w:35},
+  {n:22,w:18},{n:23,w:8},{n:24,w:4}
+];
+
+var TIERS = [
+  { min:12, max:13, name:'废铁', bonus:0,    color:'#7d8590', desc:'崩了口，但还能用', line:'一声闷响，刀身裂了道缝。' },
+  { min:14, max:15, name:'粗胚', bonus:500,  color:'#c9d1d9', desc:'锤痕未平，锋芒未露', line:'形是有了，还得再磨。' },
+  { min:16, max:17, name:'凡品', bonus:1000, color:'#38d39f', desc:'中规中矩，可入鞘', line:'刀身泛青，握在手里有点分量。' },
+  { min:18, max:19, name:'良品', bonus:1500, color:'#4fa3ff', desc:'刃口见光，一线寒芒', line:'举刀对光，刃口亮了一线。' },
+  { min:20, max:21, name:'精品', bonus:2000, color:'#b18cff', desc:'百炼之姿，可传家', line:'紫芒一闪，炉火都暗了一瞬。' },
+  { min:22, max:23, name:'名品', bonus:3000, color:'#ff9f1c', desc:'刀出有风，一城难求', line:'橙焰冲天，围观的人都不说话了。' },
+  { min:24, max:24, name:'神品', bonus:4000, color:'#ff3b3b', desc:'断刀重铸，认主而鸣', line:'刀鸣如龙，连铁砧都在震。' }
+];
+
+/* 外观随品质升级：材质、金线、宝石、金环 */
+var LOOKS = [
+  { steel:'#6e6a63', edge:'#8b8478', spine:'#4d4a45', guard:'#7a6a52', gdark:'#4a3f2c', glow:'rgba(0,0,0,0)', aura:'rgba(110,106,99,.10)', inlay:false, gem:false, rings:false },
+  { steel:'#8d9199', edge:'#b7bcc4', spine:'#5d6167', guard:'#8d7a5c', gdark:'#5a4b34', glow:'rgba(150,160,170,.18)', aura:'rgba(150,160,170,.12)', inlay:false, gem:false, rings:false },
+  { steel:'#a9bcc4', edge:'#e6f4f7', spine:'#6f838c', guard:'#c9a24d', gdark:'#8a6a22', glow:'rgba(61,220,151,.25)', aura:'rgba(61,220,151,.12)', inlay:false, gem:false, rings:false },
+  { steel:'#9fc4e8', edge:'#eaf7ff', spine:'#6a8db0', guard:'#d8b45e', gdark:'#96742a', glow:'rgba(79,163,255,.35)', aura:'rgba(79,163,255,.15)', inlay:false, gem:false, rings:false },
+  { steel:'#c3b0f0', edge:'#f3ecff', spine:'#8b76c4', guard:'#e0b34a', gdark:'#a97f22', glow:'rgba(177,140,255,.45)', aura:'rgba(177,140,255,.18)', inlay:true,  gem:false, rings:false },
+  { steel:'#e8c48a', edge:'#fff4d6', spine:'#b08a4e', guard:'#f3c969', gdark:'#b98a1e', glow:'rgba(255,159,28,.50)', aura:'rgba(255,159,28,.20)', inlay:true,  gem:true,  rings:false },
+  { steel:'#ffd37a', edge:'#fff8e1', spine:'#c99a3c', guard:'#ffdf8a', gdark:'#c58a18', glow:'rgba(255,90,60,.65)',  aura:'rgba(255,90,60,.26)',  inlay:true,  gem:true,  rings:true  }
+];
+
+/* ================= 状态 ================= */
+var G = {
+  screen:'home',
+  tab:'blade',
+  sel:{ blade:'straight', handle:'wrap', guard:'disc' },
+  n:0,
+  hits:0,
+  score:0,
+  lock:false,
+  result:null
+};
+
+var U = 6, GW = 22, GH = 46;
+
+/* ================= 工具 ================= */
+function rand(n){ return Math.floor(Math.random() * n); }
+function fmt(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+function nameOf(k){
+  var a = PARTS[k], i;
+  for (i = 0; i < a.length; i++) if (a[i].id === G.sel[k]) return a[i].name;
+  return '';
+}
+function rollN(){
+  var total = 0, i, acc = 0, r;
+  for (i = 0; i < WEIGHTS.length; i++) total += WEIGHTS[i].w;
+  r = Math.random() * total;
+  for (i = 0; i < WEIGHTS.length; i++){
+    acc += WEIGHTS[i].w;
+    if (r < acc) return WEIGHTS[i].n;
+  }
+  return 24;
+}
+function tierIndex(n){
+  var i;
+  for (i = 0; i < TIERS.length; i++) if (n >= TIERS[i].min && n <= TIERS[i].max) return i;
+  return 0;
+}
+function makeId(){
+  var a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', s1 = '', i, s2;
+  for (i = 0; i < 4; i++) s1 += a[rand(a.length)];
+  s2 = String(rand(10000));
+  while (s2.length < 4) s2 = '0' + s2;
+  return 'DD-' + s1 + '-' + s2;
+}
+function nowStr(){
+  var d = new Date();
+  function p(v){ return v < 10 ? '0' + v : '' + v; }
+  return (d.getMonth()+1) + '.' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+function mixColor(a, b, t){
+  function hex(c){ return [parseInt(c.substr(1,2),16), parseInt(c.substr(3,2),16), parseInt(c.substr(5,2),16)]; }
+  var x = hex(a), y = hex(b), o = '#', i, v;
+  for (i = 0; i < 3; i++){
+    v = Math.round(x[i] + (y[i] - x[i]) * t).toString(16);
+    o += v.length < 2 ? '0' + v : v;
+  }
+  return o;
+}
+
+/* ================= 像素刀 ================= */
+function px(x, y, w, h, fill){
+  return '<rect x="' + (x*U) + '" y="' + (y*U) + '" width="' + (w*U) + '" height="' + (h*U) + '" fill="' + fill + '"/>';
+}
+function renderBlade(type, p){
+  var base, tip, curve = 0, rows = '', i, w, x0, cx = 11, lean;
+  if (type === 'straight'){ base = 6; tip = 6; }
+  else if (type === 'curved'){ base = 7; tip = 6; curve = 2; }
+  else if (type === 'thick'){ base = 9; tip = 8; }
+  else { base = 4; tip = 9; }
+
+  for (i = 0; i < 26; i++){
+    w = (i < tip) ? Math.max(1, Math.round(base * (i + 1) / tip)) : base;
+    lean = (i < tip) ? Math.round(curve * (tip - i) / tip) : 0;
+    x0 = cx - Math.floor(w/2) - lean;
+    rows += px(x0, i, w, 1, p.steel);
+    if (w >= 2){
+      rows += px(x0, i, 1, 1, p.edge);
+      rows += px(x0 + w - 1, i, 1, 1, p.spine);
+    }
+    if (p.inlay && w >= 3) rows += px(x0 + 1, i, 1, 1, '#f3c969');
+  }
+  return rows;
+}
+function renderGuard(type, p){
+  var rows = '', widths, i, w, x0, cx = 11;
+  if (type === 'disc') widths = [7,9,9,7];
+  else if (type === 'cross') widths = [13,13,4,4];
+  else if (type === 'beast') widths = [8,11,11,7];
+  else widths = [3,3,3,3];
+
+  if (type === 'none'){
+    for (i = 0; i < 4; i++){
+      w = widths[i];
+      x0 = cx - Math.floor(w/2);
+      rows += px(x0, 26 + i, w, 1, '#3a3f47');
+    }
+    return rows;
+  }
+  for (i = 0; i < 4; i++){
+    w = widths[i];
+    x0 = cx - Math.floor(w/2);
+    rows += px(x0, 26 + i, w, 1, p.guard);
+    rows += px(x0, 26 + i, 1, 1, p.gdark);
+    if (w > 4) rows += px(x0 + w - 1, 26 + i, 1, 1, p.gdark);
+  }
+  if (p.gem){
+    rows += px(cx - 1, 27, 2, 2, '#ff4d4d');
+    rows += px(cx - 1, 27, 1, 1, '#ffd0d0');
+  }
+  return rows;
+}
+function renderHandle(type, p){
+  var rows = '', i, x0, w = 5, cx = 11, fill;
+  var base = '#6b4a2f', accent = '#a8543a', hi = '#8a6142';
+  if (type === 'shark'){ base = '#2f3b46'; accent = '#465666'; hi = '#5a6d80'; }
+  if (type === 'ebony'){ base = '#241f1c'; accent = '#3a302b'; hi = '#4a3d36'; }
+
+  for (i = 30; i < 44; i++){
+    x0 = cx - Math.floor(w/2);
+    fill = base;
+    if (type === 'wrap' && (i % 4 === 0 || i % 4 === 1)) fill = accent;
+    if (type === 'shark' && i % 3 === 0) fill = accent;
+    if (type === 'ebony' && i % 5 === 0) fill = accent;
+    if (type === 'bronze' && (i === 32 || i === 36 || i === 40)) fill = '#e0b34a';
+    if (p.rings && (i === 33 || i === 37 || i === 41)) fill = '#ffdf8a';
+    rows += px(x0, i, w, 1, fill);
+    rows += px(x0, i, 1, 1, hi);
+  }
+  rows += px(cx - 3, 44, 7, 1, p.rings ? '#ffdf8a' : (type === 'bronze' ? '#e0b34a' : '#4a3426'));
+  rows += px(cx - 3, 45, 7, 1, p.rings ? '#c58a18' : (type === 'bronze' ? '#a97f22' : '#33241b'));
+  return rows;
+}
+function knifeSVG(p){
+  p = p || LOOKS[2];
+  return '<svg viewBox="0 0 ' + (GW*U) + ' ' + (GH*U) + '" width="' + (GW*U) + '" height="' + (GH*U) +
+    '" shape-rendering="crispEdges" style="filter:drop-shadow(0 0 8px ' + p.glow + ')">' +
+    renderBlade(G.sel.blade, p) + renderGuard(G.sel.guard, p) + renderHandle(G.sel.handle, p) +
+    '</svg>';
+}
+function heatPal(hits){
+  var t = Math.min(1, hits / 18);
+  return {
+    steel: mixColor('#575d66', '#ff7a35', t),
+    edge:  mixColor('#8a929c', '#ffe0a8', t),
+    spine: mixColor('#3d4249', '#b34a1d', t),
+    guard: mixColor('#8a7a5c', '#e8a34a', t),
+    gdark: '#4a3b28',
+    glow: 'rgba(255,106,43,' + (0.12 + 0.5 * t).toFixed(2) + ')',
+    aura: 'rgba(255,106,43,' + (0.08 + 0.3 * t).toFixed(2) + ')',
+    inlay:false, gem:false, rings:false
+  };
+}
+
+/* ================= 视图 ================= */
+function render(){
+  var v = document.getElementById('view');
+  var f = document.getElementById('foot');
+  var step = document.getElementById('hudStep');
+
+  if (G.screen === 'home'){
+    step.textContent = 'DEMO';
+    v.innerHTML =
+      '<div class="stage" style="background:radial-gradient(circle at 50% 60%, ' + LOOKS[2].aura + ', transparent 62%);margin-top:6px">' + knifeSVG(LOOKS[2]) + '</div>' +
+      '<div class="title" style="margin-top:14px">断 刀</div>' +
+      '<div class="sub">锻 刀 大 会 · DEMO</div>' +
+      '<div class="divider"></div>' +
+      '<div class="rule"><i>01</i><span>选刀身、刀柄、护手各一件，只改轮廓</span></div>' +
+      '<div class="rule"><i>02</i><span>每点一次落一锤，敲到成刀为止</span></div>' +
+      '<div class="rule"><i>03</i><span>分数越高，刀越豪华，最高 10 万分</span></div>' +
+      '<div class="note">演示版可反复重玩；正式活动每人限一次。</div>';
+    f.innerHTML = '<button class="btn" onclick="goPick()">开 始 锻 刀</button>';
+    return;
+  }
+
+  if (G.screen === 'pick'){
+    step.textContent = 'STEP ' + (TAB_ORDER.indexOf(G.tab) + 1) + '/3';
+    var tabs = '', i, k, list = '', opts, j;
+    for (i = 0; i < TAB_ORDER.length; i++){
+      k = TAB_ORDER[i];
+      tabs += '<div class="tab ' + (G.tab === k ? 'on' : '') + '" onclick="setTab(\'' + k + '\')">' +
+              TAB_LABEL[k] + (G.tab === k ? ' <span class="done">·</span>' : '') + '</div>';
+    }
+    opts = PARTS[G.tab];
+    for (j = 0; j < opts.length; j++){
+      list += '<div class="part ' + (G.sel[G.tab] === opts[j].id ? 'on' : '') + '" onclick="pick(\'' + G.tab + '\',\'' + opts[j].id + '\')">' + opts[j].name + '</div>';
+    }
+    v.innerHTML =
+      '<div class="stage" style="height:280px;background:radial-gradient(circle at 50% 60%, ' + LOOKS[2].aura + ', transparent 62%)">' + knifeSVG(LOOKS[2]) + '</div>' +
+      '<div class="tabs">' + tabs + '</div>' +
+      '<div class="parts">' + list + '</div>' +
+      '<div class="hint" style="margin-top:8px">当前：' + nameOf('blade') + ' / ' + nameOf('handle') + ' / ' + nameOf('guard') + '</div>' +
+      '<div class="note">配件只决定轮廓；成刀时越豪华，说明分数越高。</div>';
+    f.innerHTML =
+      '<button class="btn" onclick="' + (G.tab === 'guard' ? 'goForge()' : 'nextTab()') + '">' + (G.tab === 'guard' ? '入 炉' : '下 一 步') + '</button>' +
+      '<button class="btn ghost" onclick="' + (G.tab === 'blade' ? 'home()' : 'prevTab()') + '">返回</button>';
+    return;
+  }
+
+  if (G.screen === 'forge'){
+    step.textContent = 'FORGE';
+    var p0 = heatPal(0);
+    v.innerHTML =
+      '<div class="stat"><div><span class="l">已敲</span><b id="hits">' + G.hits + '</b><span class="l">锤</span></div>' +
+        '<div><b id="score">' + fmt(G.score) + '</b><span class="l">分</span></div></div>' +
+      '<div class="stage" id="stage" style="background:radial-gradient(circle at 50% 60%, ' + p0.aura + ', transparent 62%)">' + knifeSVG(p0) + '</div>' +
+      '<div style="text-align:center;margin-top:10px;font-size:12px;color:var(--dim);letter-spacing:2px">刀已入炉，一下一下敲</div>' +
+      '<div class="hint" style="text-align:center;margin-top:4px">敲到第几锤才成刀，炉子说了算</div>' +
+      '<div class="note">每锤 +4,000 分；点得快慢不影响结果，只看敲了多少下。</div>';
+    f.innerHTML = '<button class="btn" id="hitBtn" onclick="hit()">敲 ！</button>';
+    return;
+  }
+
+  if (G.screen === 'result'){
+    step.textContent = 'RESULT';
+    var r = G.result;
+    var t = TIERS[r.look];
+    var look = LOOKS[r.look];
+    v.innerHTML =
+      '<div class="card" style="border-color:' + t.color + '">' +
+        '<div class="top"><span>断刀 · 锻刀大会</span><span>' + r.time + '</span></div>' +
+        '<div class="quality" style="color:' + t.color + '">' + t.name + '</div>' +
+        '<div class="qdesc">' + t.desc + '</div>' +
+        '<div class="body">' +
+          '<div class="thumb" style="background:radial-gradient(circle at 50% 50%, ' + look.aura + ', #0a0e13 72%)"><div style="transform:scale(.44)">' + knifeSVG(look) + '</div></div>' +
+          '<div class="meta">' +
+            '刀身：<b>' + nameOf('blade') + '</b><br>' +
+            '刀柄：<b>' + nameOf('handle') + '</b><br>' +
+            '护手：<b>' + nameOf('guard') + '</b><br>' +
+            '锻打：<b>' + r.n + '</b> 锤 · 余烬 <b>+' + r.e + '</b>' +
+          '</div>' +
+        '</div>' +
+        '<div class="score">' +
+          '<div><div class="lab">SCORE</div><div class="val">' + fmt(r.score) + '<small> 分</small></div>' +
+            '<div class="formula">' + r.n + ' 锤 × 4,000 · 品阶 +' + fmt(r.bonus) + ' · 余烬 +' + r.e + '</div></div>' +
+          '<div class="no">NO.<br>' + r.id + '</div>' +
+        '</div>' +
+        '<div class="footerline">' + r.line + '　名次活动结束后公布</div>' +
+      '</div>';
+    f.innerHTML =
+      '<button class="btn" onclick="again()">再 锻 一 把</button>' +
+      '<button class="btn ghost" onclick="home()">回到首页</button>';
+    return;
+  }
+}
+
+/* ================= 交互 ================= */
+function home(){ G.screen = 'home'; render(); }
+function goPick(){ G.tab = 'blade'; G.screen = 'pick'; render(); }
+function setTab(k){ G.tab = k; render(); }
+function nextTab(){ G.tab = TAB_ORDER[Math.min(TAB_ORDER.indexOf(G.tab) + 1, 2)]; render(); }
+function prevTab(){ G.tab = TAB_ORDER[Math.max(TAB_ORDER.indexOf(G.tab) - 1, 0)]; render(); }
+function pick(k, id){ G.sel[k] = id; render(); }
+
+function goForge(){
+  G.n = rollN();
+  G.hits = 0;
+  G.score = 0;
+  G.lock = false;
+  G.screen = 'forge';
+  render();
+}
+
+function hit(){
+  if (G.lock || !G.n) return;
+
+  G.hits++;
+  G.score += 4000;
+
+  var hEl = document.getElementById('hits');
+  var sEl = document.getElementById('score');
+  var stage = document.getElementById('stage');
+  if (hEl) hEl.textContent = G.hits;
+  if (sEl) sEl.textContent = fmt(G.score);
+
+  var p = heatPal(G.hits);
+  if (stage){
+    stage.innerHTML = knifeSVG(p) + '<div class="float">+4,000</div>';
+    stage.style.background = 'radial-gradient(circle at 50% 60%, ' + p.aura + ', transparent 62%)';
+    stage.classList.remove('shake');
+    void stage.offsetWidth;
+    stage.classList.add('shake');
+    sparks(stage, 8 + Math.min(16, Math.floor(G.hits * 0.8)));
+  }
+
+  if (G.hits >= G.n){
+    G.lock = true;
+    var b = document.getElementById('hitBtn');
+    if (b){ b.textContent = '淬 火…'; b.disabled = true; }
+    setTimeout(finish, 520);
+  }
+}
+
+function finish(){
+  var ti = tierIndex(G.n);
+  var t = TIERS[ti];
+  var e = rand(10);
+  G.result = {
+    n: G.n,
+    e: e,
+    bonus: t.bonus,
+    look: ti,
+    score: G.n * 4000 + t.bonus + e,
+    id: makeId(),
+    time: nowStr()
+  };
+  G.lock = false;
+  G.screen = 'result';
+  render();
+}
+
+function again(){
+  G.n = 0; G.hits = 0; G.score = 0; G.result = null; G.lock = false;
+  G.screen = 'home';
+  render();
+}
+
+function sparks(parent, count){
+  var i, s, x, y;
+  for (i = 0; i < count; i++){
+    s = document.createElement('div');
+    s.className = 'spark';
+    x = 50 + Math.round(Math.random() * 26 - 13);
+    y = 46 + Math.round(Math.random() * 10);
+    s.style.left = x + '%';
+    s.style.top = y + '%';
+    s.style.setProperty('--dx', (Math.random() * 130 - 65) + 'px');
+    s.style.setProperty('--dy', (Math.random() * -150 - 20) + 'px');
+    s.style.background = Math.random() > 0.4 ? '#ffcf6a' : '#ff7a3c';
+    parent.appendChild(s);
+    (function(el){
+      setTimeout(function(){ el.classList.add('go'); }, 10);
+      setTimeout(function(){ if (el.parentNode) el.parentNode.removeChild(el); }, 800);
+    })(s);
+  }
+}
+
+render();
+</script>
+</body>
+</html>
